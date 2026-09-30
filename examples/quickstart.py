@@ -29,7 +29,7 @@ def main() -> None:
     y_pred = [1 if s >= 0.5 else 0 for s in scores]
 
     report = fairness_report(y_true, y_pred, groups, scores=scores)
-    print(to_markdown(report, title="Fairness Audit — sample_predictions.csv"))
+    print(to_markdown(report, title="Fairness Audit - sample_predictions.csv"))
 
     dp = report["demographic_parity"]
     print()
