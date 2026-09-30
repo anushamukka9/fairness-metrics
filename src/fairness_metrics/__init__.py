@@ -10,8 +10,9 @@ from .metrics import (
     fairness_report,
     overall_metrics,
     per_group_metrics,
+    predictive_parity,
 )
-from .report import to_json, to_markdown
+from .report import to_json, to_markdown, to_text
 from .thresholds import CONSTRAINT_MEASURES, find_fair_thresholds, threshold_scan
 
 __all__ = [
@@ -21,6 +22,7 @@ __all__ = [
     "demographic_parity",
     "equalized_odds",
     "equal_opportunity",
+    "predictive_parity",
     "disparate_impact",
     "calibration_by_group",
     "fairness_report",
@@ -29,6 +31,7 @@ __all__ = [
     "CONSTRAINT_MEASURES",
     "to_json",
     "to_markdown",
+    "to_text",
 ]
 
 __version__ = "0.1.0"
