@@ -1,7 +1,7 @@
 """Threshold scanning and fairness-constrained threshold selection.
 
 A single global threshold often produces unequal outcomes across groups. This
-module sweeps decision thresholds — shared or per-group — and finds operating
+module sweeps decision thresholds - shared or per-group - and finds operating
 points that keep a chosen disparity measure under a bound while maximizing a
 utility objective.
 """
@@ -18,6 +18,7 @@ from .metrics import (
     equal_opportunity,
     equalized_odds,
     per_group_metrics,
+    predictive_parity,
 )
 
 __all__ = [
@@ -30,6 +31,7 @@ _CONSTRAINT_FUNCS = {
     "demographic_parity": lambda grp: demographic_parity(grp)["max_difference"],
     "equalized_odds": lambda grp: equalized_odds(grp)["max_difference"],
     "equal_opportunity": lambda grp: equal_opportunity(grp)["tpr_max_difference"],
+    "predictive_parity_gap": lambda grp: predictive_parity(grp)["max_difference"],
     "disparate_impact_gap": lambda grp: 1.0 - disparate_impact(grp)["min_ratio"],
 }
 
@@ -87,6 +89,7 @@ def threshold_scan(
             "demographic_parity_max_difference": demographic_parity(grp)["max_difference"],
             "disparate_impact_min_ratio": disparate_impact(grp)["min_ratio"],
             "equalized_odds_max_difference": equalized_odds(grp)["max_difference"],
+            "predictive_parity_max_difference": predictive_parity(grp)["max_difference"],
         }
         rows.append(row)
     return {"thresholds": thresholds, "per_group_thresholds": per_group, "scan": rows, "groups": labels}
@@ -112,7 +115,7 @@ def find_fair_thresholds(
     meet the constraint.
 
     Returns the selected thresholds, the resulting per-group metrics, and the
-    achieved disparity — so the trade-off is auditable, not a black box.
+    achieved disparity - so the trade-off is auditable, not a black box.
     """
     if constraint not in _CONSTRAINT_FUNCS:
         raise ValueError(f"constraint must be one of {CONSTRAINT_MEASURES}, got {constraint!r}")
