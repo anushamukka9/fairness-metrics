@@ -42,7 +42,7 @@ def cmd_score(args: argparse.Namespace) -> int:
         y_pred = [int(float(v)) for v in _column(rows, args.y_pred)]
     report = fairness_report(y_true, y_pred, group, scores=scores, n_bins=args.bins)
     output = (
-        to_markdown(report, title=f"Fairness Audit — {Path(args.csv).name}")
+        to_markdown(report, title=f"Fairness Audit - {Path(args.csv).name}")
         if args.markdown
         else to_json(report)
     )
