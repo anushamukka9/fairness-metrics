@@ -7,40 +7,46 @@ A walkthrough of `fairness-metrics` for auditing a binary classifier.
 - `y_true`: true binary labels (0/1)
 - `y_pred`: predicted binary labels (0/1), **or** `scores`: predicted
   probabilities in [0, 1] plus a threshold
-- `groups`: the sensitive attribute (any hashable labels — strings, ints —
+- `groups`: the sensitive attribute (any hashable labels: strings, ints -
   any number of groups)
 
 ```python
-from fairness_metrics import fairness_report, to_json, to_markdown
+from fairness_metrics import fairness_report, to_json, to_markdown, to_text
 
 report = fairness_report(y_true, y_pred, groups, scores=scores)
 open("audit.json", "w").write(to_json(report))
 print(to_markdown(report))
+print(to_text(report))      # plain ASCII version for terminals and log files
 ```
 
 ## 2. Reading the report
 
-- **`overall` / `groups`**: per-group confusion-derived metrics — selection
+- **`overall` / `groups`**: per-group confusion-derived metrics - selection
   rate P(ŷ=1), TPR/recall, FPR, TNR/specificity, precision, accuracy,
   balanced accuracy, and sample counts. Start here: eyeball the table before
   trusting any summary number.
 - **`demographic_parity`**: max pairwise difference and min ratio of
   selection rates. Difference 0 / ratio 1 means perfect parity. This measure
-  ignores ground truth — it is the right lens when outcomes themselves should
+  ignores ground truth - it is the right lens when outcomes themselves should
   be allocated equally (e.g. ad targeting), the wrong lens when base rates
   legitimately differ.
-- **`equalized_odds`**: TPR *and* FPR parity — the model's errors are equally
+- **`equalized_odds`**: TPR *and* FPR parity - the model's errors are equally
   distributed across groups. Use when both false positives and false negatives
   carry cost.
-- **`equal_opportunity`**: TPR parity only — qualified members of each group
+- **`equal_opportunity`**: TPR parity only - qualified members of each group
   are selected at equal rates. Use when the positive class is an opportunity
   (hiring, lending) and recall matters most.
+- **`predictive_parity`**: precision (positive predictive value) parity -
+  among the instances flagged positive, the share that truly are positive is
+  equal across groups. Use when a positive decision triggers a costly action
+  (fraud review, medical follow-up) and you want the flag to mean the same
+  thing for every group.
 - **`disparate_impact`**: the min selection-rate ratio plus the four-fifths
   rule screen (ratio ≥ 0.8 passes). A flag here starts an investigation; it
   does not prove discrimination.
 - **`calibration_by_group`** (requires `scores`): expected calibration error
   per group. A model can satisfy parity while being badly miscalibrated for
-  one group — check both.
+  one group - check both.
 
 ## 3. Finding fairer operating points
 
@@ -64,7 +70,7 @@ result = find_fair_thresholds(
     objective="balanced_accuracy",
 )
 print(result["thresholds"])            # {'a': 0.45, 'b': 0.55, ...}
-print(result["constraint_satisfied"])   # True/False — always check
+print(result["constraint_satisfied"])   # True/False - always check
 ```
 
 The search is exact on the threshold grid (default 19 points from 0.05 to
@@ -102,7 +108,7 @@ The CSV just needs the named columns; extra columns are ignored.
 - Always inspect per-group `n` before acting: disparity measures on tiny
   groups are noise.
 - `find_fair_thresholds` may report `constraint_satisfied: False` if no grid
-  point meets the bound — that is a finding, not a bug. Loosen `max_gap`,
+  point meets the bound - that is a finding, not a bug. Loosen `max_gap`,
   widen the grid, or fix the model.
 - Metrics that are undefined for a group (e.g. TPR when the group has no
   positive labels) surface as NaN / "n/a" rather than silently dropping the
