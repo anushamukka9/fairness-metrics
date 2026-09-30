@@ -1,9 +1,10 @@
 # fairness-metrics
 
 Group fairness diagnostics for binary classifiers: **demographic parity,
-equalized odds, equal opportunity, disparate impact, calibration-by-group**,
-threshold scanning for fairer operating points, and JSON/Markdown audit
-reports — plus a CLI that scores a predictions CSV. Only dependency: `numpy`.
+equalized odds, equal opportunity, predictive parity, disparate impact,
+calibration-by-group**, threshold scanning for fairer operating points, and
+JSON/Markdown/plain-text audit reports - plus a CLI that scores a predictions
+CSV. Only dependency: `numpy`.
 
 By [Anusha Mukka](https://anushamukka.com).
 
@@ -30,7 +31,9 @@ print(to_markdown(report))
 ```
 
 A runnable version lives in `examples/quickstart.py` with
-`examples/sample_predictions.csv`.
+`examples/sample_predictions.csv`. A second example, `examples/toy_bias_demo.py`,
+builds a small synthetic dataset with a deliberately skewed scorecard, shows
+how the metrics surface it, and uses `find_fair_thresholds` to narrow the gap.
 
 ## CLI
 
@@ -55,7 +58,7 @@ fairness-metrics scan examples/sample_predictions.csv \
 ```
 
 Constraints: `demographic_parity`, `equalized_odds`, `equal_opportunity`,
-`disparate_impact_gap`. Objectives: `balanced_accuracy`, `accuracy`,
+`predictive_parity_gap`, `disparate_impact_gap`. Objectives: `balanced_accuracy`, `accuracy`,
 `true_positive_rate`.
 
 ## API
@@ -67,12 +70,13 @@ from fairness_metrics import (
     demographic_parity,     # selection-rate parity across groups
     equalized_odds,         # TPR and FPR parity
     equal_opportunity,      # TPR parity
+    predictive_parity,      # precision (PPV) parity across groups
     disparate_impact,       # min selection-rate ratio + four-fifths rule
     calibration_by_group,   # per-group ECE from probabilities
     threshold_scan,         # metrics across a threshold grid
     find_fair_thresholds,   # per-group thresholds under a fairness constraint
     fairness_report,        # full diagnostics bundle (JSON-serializable)
-    to_json, to_markdown,   # report rendering
+    to_json, to_markdown, to_text,  # report rendering
 )
 ```
 
@@ -104,9 +108,9 @@ CSVs.
   in [0, 1].
 - The four-fifths rule is a screening heuristic, not a legal test of
   discrimination. Per-group thresholds can raise their own compliance and
-  product questions — use `find_fair_thresholds` to *diagnose* trade-offs,
+  product questions - use `find_fair_thresholds` to *diagnose* trade-offs,
   not as an automatic deployment rule.
 
 ## License
 
-MIT — see [LICENSE](LICENSE). Copyright 2026 Anusha Mukka.
+MIT - see [LICENSE](LICENSE). Copyright 2026 Anusha Mukka.
