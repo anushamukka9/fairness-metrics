@@ -18,6 +18,7 @@ __all__ = [
     "demographic_parity",
     "equalized_odds",
     "equal_opportunity",
+    "predictive_parity",
     "disparate_impact",
     "calibration_by_group",
     "fairness_report",
@@ -61,7 +62,7 @@ class GroupMetrics:
     n: int
     positives: int  # true positives count (y=1)
     negatives: int  # true negatives count (y=0)
-    selection_rate: float  # P(yhat=1) — fraction predicted positive
+    selection_rate: float  # P(yhat=1) - fraction predicted positive
     true_positive_rate: float  # TPR = recall = P(yhat=1 | y=1)
     false_positive_rate: float  # FPR = P(yhat=1 | y=0)
     true_negative_rate: float  # TNR = specificity = P(yhat=0 | y=0)
@@ -204,6 +205,21 @@ def equal_opportunity(group_metrics: Mapping[str, GroupMetrics]) -> Dict[str, An
     }
 
 
+def predictive_parity(group_metrics: Mapping[str, GroupMetrics]) -> Dict[str, Any]:
+    """Predictive parity: equal precision (positive predictive value) across groups.
+
+    Among instances the model flags positive, the fraction that truly are
+    positive should be the same for every group. Reports per-group precision
+    plus the maximum pairwise difference and the minimum ratio.
+    """
+    ppv = _rates_by_group(group_metrics, "precision")
+    return {
+        "precision_by_group": ppv,
+        "max_difference": _max_pairwise_difference(ppv),
+        "min_ratio": _min_pairwise_ratio(ppv),
+    }
+
+
 def disparate_impact(
     group_metrics: Mapping[str, GroupMetrics], threshold: float = 0.8
 ) -> Dict[str, Any]:
@@ -290,8 +306,8 @@ def fairness_report(
 
     Returns a JSON-serializable dict with per-group metrics, overall metrics,
     and the disparity summaries (demographic parity, equalized odds, equal
-    opportunity, disparate impact), plus calibration-by-group when ``scores``
-    are provided.
+    opportunity, predictive parity, disparate impact), plus
+    calibration-by-group when ``scores`` are provided.
     """
     grp = per_group_metrics(y_true, y_pred, groups)
     report: Dict[str, Any] = {
@@ -302,6 +318,7 @@ def fairness_report(
         "demographic_parity": demographic_parity(grp),
         "equalized_odds": equalized_odds(grp),
         "equal_opportunity": equal_opportunity(grp),
+        "predictive_parity": predictive_parity(grp),
         "disparate_impact": disparate_impact(grp),
     }
     if scores is not None:
